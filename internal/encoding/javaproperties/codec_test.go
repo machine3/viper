@@ -9,11 +9,15 @@ import (
 const original = `#key-value pair
 key = value
 map.key = value
+slice[0].key = value
+slice[2].key = value
 `
 
 // encoded form of the data
 const encoded = `key = value
 map.key = value
+slice[0].key = value
+slice[2].key = value
 `
 
 // Viper's internal representation
@@ -21,6 +25,15 @@ var data = map[string]interface{}{
 	"key": "value",
 	"map": map[string]interface{}{
 		"key": "value",
+	},
+	"slice": []map[string]interface{}{
+		{
+			"key": "value",
+		},
+		{},
+		{
+			"key": "value",
+		},
 	},
 }
 

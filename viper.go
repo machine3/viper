@@ -215,7 +215,8 @@ type Viper struct {
 	aliases        map[string]string
 	typeByDefValue bool
 
-	onConfigChange func(fsnotify.Event)
+	onConfigChange       func(fsnotify.Event)
+	onRemoteConfigChange func(*RemoteResponse)
 
 	logger Logger
 
@@ -424,6 +425,11 @@ var SupportedRemoteProviders = []string{"etcd", "consul", "firestore"}
 func OnConfigChange(run func(in fsnotify.Event)) { v.OnConfigChange(run) }
 func (v *Viper) OnConfigChange(run func(in fsnotify.Event)) {
 	v.onConfigChange = run
+}
+
+func OnRemoteConfigChange(run func(rsp *RemoteResponse)) { v.OnRemoteConfigChange(run) }
+func (v *Viper) OnRemoteConfigChange(run func(rsp *RemoteResponse)) {
+	v.onRemoteConfigChange = run
 }
 
 func WatchConfig() { v.WatchConfig() }
@@ -1883,6 +1889,10 @@ func (v *Viper) watchKeyValueConfigOnChannel() error {
 				b := <-rc
 				reader := bytes.NewReader(b.Value)
 				v.unmarshalReader(reader, v.kvstore)
+
+				if v.onRemoteConfigChange != nil {
+					v.onRemoteConfigChange(b)
+				}
 			}
 		}(respc)
 		return nil
