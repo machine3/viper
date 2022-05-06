@@ -9,15 +9,23 @@ import (
 const original = `#key-value pair
 key = value
 map.key = value
-slice[0].key = value
-slice[2].key = value
+sliceMap[0].key1 = value01
+sliceMap[0].key2 = value02
+sliceMap[1].key1 = value11
+sliceMap[1].key2 = value12
+slice[0] = 1
+slice[1] = 2
 `
 
 // encoded form of the data
 const encoded = `key = value
 map.key = value
-slice[0].key = value
-slice[2].key = value
+sliceMap[0].key1 = value01
+sliceMap[0].key2 = value02
+sliceMap[1].key1 = value11
+sliceMap[1].key2 = value12
+slice[0] = 1
+slice[1] = 2
 `
 
 // Viper's internal representation
@@ -26,15 +34,17 @@ var data = map[string]interface{}{
 	"map": map[string]interface{}{
 		"key": "value",
 	},
-	"slice": []map[string]interface{}{
-		{
-			"key": "value",
+	"sliceMap": []interface{}{
+		map[string]interface{}{
+			"key1": "value01",
+			"key2": "value02",
 		},
-		{},
-		{
-			"key": "value",
+		map[string]interface{}{
+			"key1": "value11",
+			"key2": "value12",
 		},
 	},
+	"slice": []interface{}{"1", "2"},
 }
 
 func TestCodec_Encode(t *testing.T) {

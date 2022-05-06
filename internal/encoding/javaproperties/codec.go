@@ -73,7 +73,7 @@ func (c *Codec) Decode(b []byte, v map[string]interface{}) error {
 		// set innermost value
 		deepestMap[lastKey] = value
 	}
-
+	processlist(&v)
 	return nil
 }
 

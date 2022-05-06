@@ -72,3 +72,65 @@ func flattenAndMergeMap(shadow map[string]interface{}, m map[string]interface{},
 	}
 	return shadow
 }
+
+// processlist
+func processlist(resMap *map[string]interface{}) {
+	count := len(*resMap)
+	for k, v := range *resMap {
+		// 判断是否key包含了数组的符号
+		if strings.Contains(k, "[") && strings.Contains(k, "]") && (strings.LastIndex(k, "]")+1 == len(k)) {
+			x, ok := (*resMap)[string([]rune(k)[:strings.LastIndex(k, "[")])]
+			// 已经存在
+			if ok {
+				// 如果是v是map,处理它的孩子并把它加到数组里面
+				if xxx, ok := v.(map[string]interface{}); ok {
+					processlist(&xxx)
+				}
+				x = append(x.([]interface{}), v)
+				// 创建一个数组子项，给后面生成yaml使用的数组
+				(*resMap)[string([]rune(k)[:strings.LastIndex(k, "[")])] = x
+				delete(*resMap, k)
+				count--
+				// key已经全部遍历完成
+				if count == 0 {
+					return
+				}
+				// 该项处理完成 继续处理下一项
+				continue
+			} else {
+				if xxx, ok := v.(map[string]interface{}); ok {
+					processlist(&xxx)
+				}
+				// 首次
+				x = append([]interface{}{}, v)
+				(*resMap)[string([]rune(k)[:strings.LastIndex(k, "[")])] = x
+				delete(*resMap, k)
+				count--
+				// 遍历完成
+				if count == 0 {
+					return
+				}
+				continue
+			}
+		}
+		// 如果是字符串说明已经到达最后直接下次循环
+		if _, ok := v.(string); ok {
+			count--
+			if count <= 0 {
+				return
+			}
+			continue
+		}
+		// 因为加入了数组所以这里遍历到需要把它跳过
+		if _, ok := v.([]interface{}); ok {
+			continue
+		}
+		// 正常的情况不带数组标记的
+		x := v.(map[string]interface{})
+		processlist(&x)
+		count--
+		if count == 0 {
+			return
+		}
+	}
+}
